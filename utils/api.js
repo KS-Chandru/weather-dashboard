@@ -14,7 +14,7 @@ export async function getWeatherData(city) {
   const forecastData = await forecastRes.json();
 
   // Convert to daily forecast: pick one item per day (12:00)
-  const daily = forecastData.list.filter((item) =>
+  const daily = forecastData.list?.filter((item) =>
     item.dt_txt.includes("12:00:00")
   );
 
