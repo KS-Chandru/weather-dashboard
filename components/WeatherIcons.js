@@ -1,3 +1,4 @@
+// components/WeatherIcons.js
 export default {
   Clear: "☀️",
   Clouds: "☁️",
@@ -6,4 +7,12 @@ export default {
   Snow: "❄️",
   Drizzle: "🌦️",
   Mist: "🌫️",
+  Smoke: "🌫️",
+  Haze: "🌫️",
+  Dust: "🌫️",
+  Fog: "🌫️",
+  Sand: "🌫️",
+  Ash: "🌋",
+  Squall: "💨",
+  Tornado: "🌪️",
 };

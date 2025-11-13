@@ -1,47 +1,54 @@
+// components/SearchBar.jsx
 "use client";
 
-import { TextField, InputAdornment, IconButton, Paper } from "@mui/material";
-import Search from "@mui/icons-material/Search";
-import { useState } from "react";
+import { TextField, IconButton, Paper, InputAdornment } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
+import { useState, useContext } from "react";
+import { ThemeContext } from "./Providers";
 
 export default function SearchBar({ onSearch }) {
-  const [city, setCity] = useState("");
+  const [q, setQ] = useState("");
+  const { mode, hardText, glassBackground } = useContext(ThemeContext);
+
+  const submit = () => {
+    if (!q || !q.trim()) return;
+    onSearch(q.trim());
+    setQ("");
+  };
 
   return (
     <Paper
-      elevation={6}
       sx={{
-        p: 1.5,
-        borderRadius: 5,
-        mb: 4,
-        background: "rgba(255,255,255,0.35)",
-        backdropFilter: "blur(12px)",
+        p: 1,
+        borderRadius: 3,
+        mb: 2,
+        background:
+          mode === "dark" ? "rgba(34, 192, 207, 0.12)" : glassBackground,
+        backdropFilter: "blur(8px)",
+        border:
+          mode === "light"
+            ? "1px solid rgba(0, 150, 136, 0.3)"
+            : "1px solid rgba(34, 192, 207, 0.2)",
       }}
     >
       <TextField
-        fullWidth
         variant="standard"
-        placeholder="Search for a city..."
+        placeholder="Search city (e.g. London)"
+        fullWidth
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
         InputProps={{
           disableUnderline: true,
-          sx: { fontSize: 18, px: 2 },
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton
-                onClick={() => onSearch(city)}
-                sx={{
-                  background: "#1976d2",
-                  color: "white",
-                  "&:hover": { background: "#1259a5" },
-                }}
-              >
-                <Search />
+              <IconButton onClick={submit}>
+                <SearchIcon sx={{ color: hardText }} />
               </IconButton>
             </InputAdornment>
           ),
         }}
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
+        sx={{ input: { color: hardText, fontSize: 16 } }}
       />
     </Paper>
   );

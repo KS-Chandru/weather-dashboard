@@ -1,80 +1,77 @@
+// components/WeatherChart.jsx
 "use client";
 
 import { useEffect, useRef } from "react";
 
-export default function WeatherChart({ weekly }) {
-  const canvasRef = useRef();
+export default function WeatherChart({ weekly = [] }) {
+  const ref = useRef(null);
 
   useEffect(() => {
-    const c = canvasRef.current;
-    const ctx = c.getContext("2d");
-
-    // Chart area size
-    const width = c.width;
-    const height = c.height;
+    const canvas = ref.current;
+    const ctx = canvas.getContext("2d");
+    const W = (canvas.width = 720);
+    const H = (canvas.height = 240);
     const padding = 40;
 
-    // Extract temperatures
-    const temps = weekly.map((d) => d.temp);
+    if (!weekly.length) {
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
 
+    const temps = weekly.map((w) => w.temp);
     const min = Math.min(...temps) - 2;
     const max = Math.max(...temps) + 2;
+    const xStep = (W - padding * 2) / (weekly.length - 1);
 
-    // Helper to map temps → Y position
-    const yScale = (t) =>
-      height - padding - ((t - min) / (max - min)) * (height - padding * 2);
-
-    // X spacing
-    const xStep = (width - padding * 2) / (weekly.length - 1);
+    const y = (t) =>
+      H - padding - ((t - min) / (max - min)) * (H - padding * 2);
 
     let progress = 0;
 
     function draw() {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, W, H);
 
-      // GRADIENT BG
-      const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, "rgba(255,255,255,0.8)");
-      gradient.addColorStop(1, "rgba(255,255,255,0.1)");
+      // gradient fill
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, "rgba(255,255,255,0.28)");
+      grad.addColorStop(1, "rgba(255,255,255,0.02)");
 
-      // Smooth Bezier curve
+      ctx.beginPath();
+      weekly.forEach((d, i) => {
+        const px = padding + i * xStep * progress;
+        const py = y(d.temp) * progress + (1 - progress) * (H - padding);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+
+      ctx.lineTo(W - padding, H - padding);
+      ctx.lineTo(padding, H - padding);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // stroke line
       ctx.beginPath();
       ctx.lineWidth = 3;
       ctx.strokeStyle = "white";
-
       weekly.forEach((d, i) => {
-        const x = padding + i * xStep;
-        const y = yScale(d.temp);
-
         const px = padding + i * xStep * progress;
-        const py = yScale(d.temp) * progress;
-
+        const py = y(d.temp) * progress + (1 - progress) * (H - padding);
         if (i === 0) ctx.moveTo(px, py);
-        else ctx.bezierCurveTo(px - 15, py, px - 5, py, px, py);
+        else ctx.lineTo(px, py);
       });
-
       ctx.stroke();
 
-      // Fill under curve
-      ctx.lineTo(width - padding, height - padding);
-      ctx.lineTo(padding, height - padding);
-      ctx.closePath();
-
-      ctx.fillStyle = gradient;
-      ctx.fill();
-
-      // Draw points
+      // points and labels
+      ctx.fillStyle = "white";
+      ctx.font = "14px Inter";
       weekly.forEach((d, i) => {
-        const x = padding + i * xStep * progress;
-        const y = yScale(d.temp) * progress;
-
+        const px = padding + i * xStep * progress;
+        const py = y(d.temp) * progress + (1 - progress) * (H - padding);
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.font = "14px Inter";
-        ctx.fillText(`${d.temp}°`, x - 10, y - 12);
+        ctx.fillText(`${d.temp}°`, px - 12, py - 12);
       });
 
       if (progress < 1) {
@@ -89,14 +86,13 @@ export default function WeatherChart({ weekly }) {
   return (
     <div
       style={{
-        marginTop: 30,
-        padding: 20,
-        borderRadius: 20,
-        background: "rgba(255,255,255,0.25)",
-        backdropFilter: "blur(15px)",
+        borderRadius: 12,
+        overflow: "hidden",
+        background: "rgba(255,255,255,0.03)",
+        padding: 12,
       }}
     >
-      <canvas ref={canvasRef} width={400} height={250}></canvas>
+      <canvas ref={ref} style={{ width: "100%", height: 220 }} />
     </div>
   );
 }
